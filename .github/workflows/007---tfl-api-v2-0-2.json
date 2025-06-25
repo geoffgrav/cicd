@@ -3,7 +3,7 @@ name: Deploy API to Gravitee
 on:
   push:
     paths:
-      - "gravitee/007---tfl-api-v2-0-2.json"
+      - "007.json"
 
 jobs:
   deploy:
