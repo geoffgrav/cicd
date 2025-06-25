@@ -1,0 +1,54 @@
+name: Promote Gravitee API
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_id:
+        description: "API ID to promote (e.g., 'a1b2c3d4-5678-90ef-ghij-klmnopqrstuv')"
+        required: true
+      source_env_id:
+        description: "Source Environment ID (e.g., 'DEFAULT' for DEV)"
+        default: "DEFAULT"
+      target_env_id:
+        description: "Target Environment ID (e.g., 'e6993ff7-02d0-4c14-993f-f702d04c14f9' for PROD)"
+        default: "e6993ff7-02d0-4c14-993f-f702d04c14f9"
+
+env:
+  GRAVITEE_API_URL: "https://demo-apim-api.geoff.gravitee.xyz"
+  ORG_ID: "DEFAULT"  # Update if your org ID differs
+
+jobs:
+  promote-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote API
+        run: |
+          echo "🚀 Promoting API ${{ github.event.inputs.api_id }}"
+          echo "🔹 Source Env: ${{ github.event.inputs.source_env_id }}"
+          echo "🎯 Target Env: ${{ github.event.inputs.target_env_id }}"
+
+          RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+            -X POST \
+            "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote" \
+            -H "Authorization: Bearer ${{ secrets.GRAVITEE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "targetEnvId": "${{ github.event.inputs.target_env_id }}",
+              "targetEnvName": "Production",  # Optional: Human-readable name
+              "withPolicies": true,
+              "withPlans": true
+            }')
+
+          # Extract HTTP status and response body
+          HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS\:.*//g')
+
+          echo "📡 Response: $BODY"
+          echo "🛠️ HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "❌ Promotion failed!"
+            exit 1
+          else
+            echo "✅ Success! API promoted to ${{ github.event.inputs.target_env_id }}"
+          fi
