@@ -20,6 +20,7 @@ env:
 jobs:
   promote-api:
     runs-on: ubuntu-latest
+
     steps:
       - name: Validate inputs
         run: |
@@ -27,7 +28,7 @@ jobs:
           echo "API ID: ${{ github.event.inputs.api_id }}"
           echo "Source Env: ${{ github.event.inputs.source_env_id }}"
           echo "Target Env: ${{ github.event.inputs.target_env_id }}"
-          
+
           if [[ ! "${{ github.event.inputs.api_id }}" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
             echo "❌ Invalid API ID format"
             exit 1
@@ -37,17 +38,17 @@ jobs:
         run: |
           echo "🚀 Starting API promotion"
 
-          # Create temp file for payload to avoid heredoc indentation issues
-          cat << EOF > payload.json
-          {
-            "targetEnvId": "${{ github.event.inputs.target_env_id }}",
-            "targetEnvName": "Production",
-            "targetEnvCockpitId": "${{ github.event.inputs.target_env_id }}",
-            "withPolicies": true,
-            "withPlans": true
-          }
+          # Create payload.json without indentation issues
+          cat > payload.json <<EOF
+{
+  "targetEnvId": "${{ github.event.inputs.target_env_id }}",
+  "targetEnvName": "Production",
+  "targetEnvCockpitId": "${{ github.event.inputs.target_env_id }}",
+  "withPolicies": true,
+  "withPlans": true
+}
 EOF
-          
+
           echo "📦 Payload:"
           cat payload.json
 
