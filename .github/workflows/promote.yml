@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       api_id:
-        description: "API ID to promote (e.g., '71d49888-0811-3af7-8cba-6c1a5fbda94d')"
+        description: "API ID to promote"
         required: true
       source_env_id:
         description: "Source Environment ID"
@@ -28,9 +28,8 @@ jobs:
           echo "Source Env: ${{ github.event.inputs.source_env_id }}"
           echo "Target Env: ${{ github.event.inputs.target_env_id }}"
           
-          # Validate UUID format
           if [[ ! "${{ github.event.inputs.api_id }}" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
-            echo "❌ Invalid API ID format (must be UUID)"
+            echo "❌ Invalid API ID format"
             exit 1
           fi
 
@@ -38,40 +37,35 @@ jobs:
         run: |
           echo "🚀 Starting API promotion"
           
-          # Create the JSON payload using heredoc to avoid quoting issues
-          read -r -d '' PROMOTE_PAYLOAD << EOM
+          # Create temp file for payload to avoid heredoc issues
+          cat << EOF > payload.json
           {
             "targetEnvId": "${{ github.event.inputs.target_env_id }}",
-            "targetEnvName": "Prod",
+            "targetEnvName": "Production",
             "withPolicies": true,
             "withPlans": true
           }
-          EOM
-
+          EOF
+          
           echo "📦 Payload:"
-          echo "$PROMOTE_PAYLOAD"
+          cat payload.json
 
           RESPONSE=$(curl -v -s -w "HTTPSTATUS:%{http_code}" \
             -X POST \
             "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote" \
             -H "Authorization: Bearer ${{ secrets.GRAVITEE_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data-raw "$PROMOTE_PAYLOAD")
+            --data @payload.json)
 
-          # Process response
           HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
           BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS\:.*//g')
 
-          echo "🔍 Debug Info:"
-          echo "URL: $GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote"
           echo "Status: $HTTP_STATUS"
           echo "Response: $BODY"
 
           if [ "$HTTP_STATUS" -ge 400 ]; then
-            echo "❌ Promotion failed with status $HTTP_STATUS"
-            echo "Full error: $BODY"
+            echo "❌ Promotion failed"
             exit 1
           else
-            echo "✅ Successfully promoted API to ${{ github.event.inputs.target_env_id }}"
-            echo "New API location: $GRAVITEE_API_URL/#!/$ORG_ID/${{ github.event.inputs.target_env_id }}/apis/${{ github.event.inputs.api_id }}"
+            echo "✅ Successfully promoted API"
           fi
