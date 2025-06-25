@@ -1,0 +1,17 @@
+name: Promote Gravitee API (Fixed)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_id:
+        description: "API ID (UUID format)"
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug inputs
+        run: |
+          echo "Success! Manual trigger works."
+          echo "API ID: ${{ github.event.inputs.api_id }}"
