@@ -1,5 +1,5 @@
 {
-  "name": "my-v2-api",
+  "name": "my-v2-test",
   "version": "1.0",
   "context_path": "/my-v2-api",
   "proxy": {
