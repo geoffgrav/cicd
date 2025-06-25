@@ -1,17 +1,92 @@
-name: Promote Gravitee API (Fixed)
+name: Gravitee API Promotion
 
 on:
   workflow_dispatch:
     inputs:
       api_id:
-        description: "API ID (UUID format)"
+        description: "API ID to promote (must be UUID format)"
         required: true
+      source_env_id:
+        description: "Source Environment ID"
+        default: "DEFAULT"
+      target_env_id:
+        description: "Target Environment ID"
+        default: "e6993ff7-02d0-4c14-993f-f702d04c14f9"
+
+env:
+  GRAVITEE_API_URL: "https://demo-apim-api.geoff.gravitee.xyz"
+  ORG_ID: "DEFAULT"
 
 jobs:
-  test:
+  promote-api:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug inputs
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
         run: |
-          echo "Success! Manual trigger works."
+          echo "=== INPUT VALIDATION ==="
           echo "API ID: ${{ github.event.inputs.api_id }}"
+          echo "Source Env: ${{ github.event.inputs.source_env_id }}"
+          echo "Target Env: ${{ github.event.inputs.target_env_id }}"
+
+          if [[ ! "${{ github.event.inputs.api_id }}" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+            echo "❌ Error: Invalid API ID format - must be UUID"
+            exit 1
+          fi
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Promote API
+        id: promotion
+        run: |
+          echo "=== STARTING PROMOTION ==="
+          echo "Source: ${{ github.event.inputs.source_env_id }}"
+          echo "Target: ${{ github.event.inputs.target_env_id }}"
+
+          # Create payload
+          PAYLOAD=$(jq -n \
+            --arg target "${{ github.event.inputs.target_env_id }}" \
+            '{
+              "targetEnvId": $target,
+              "targetEnvName": "Production",
+              "targetEnvCockpitId": $target,
+              "withPolicies": true,
+              "withPlans": true
+            }')
+
+          echo "Payload:"
+          echo "$PAYLOAD" | jq
+
+          # Make API call
+          RESPONSE=$(curl -sS -w "HTTP_STATUS:%{http_code}" \
+            -X POST \
+            "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote" \
+            -H "Authorization: Bearer ${{ secrets.GRAVITEE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          # Parse response
+          HTTP_STATUS=$(echo "$RESPONSE" | grep -oP 'HTTP_STATUS:\K\d+')
+          BODY=$(echo "$RESPONSE" | sed 's/HTTP_STATUS:.*//')
+
+          echo "=== RESPONSE ==="
+          echo "Status: $HTTP_STATUS"
+          echo "Body:"
+          echo "$BODY" | jq || echo "$BODY"
+
+          if [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "❌ Promotion failed"
+            exit 1
+          fi
+
+          echo "✅ Promotion successful"
+          echo "promoted=true" >> $GITHUB_OUTPUT
+
+      - name: Verify promotion
+        if: steps.promotion.outputs.promoted == 'true'
+        run: |
+          echo "=== VERIFICATION ==="
+          echo "API successfully promoted to Production"
