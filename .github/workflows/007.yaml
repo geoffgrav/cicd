@@ -12,15 +12,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy v2 API to Gravitee
+      - name: Deploy V2 API to Gravitee
         run: |
-          curl --request POST \
+          echo "Sending API definition to Gravitee..."
+          response=$(curl --request POST \
             --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
             --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
-            --data @gravitee/007.json
+            --data @gravitee/007.json \
+            --silent --write-out "HTTPSTATUS:%{http_code}")
+
+          # Extract body and status
+          body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+
+          echo "HTTP Status Code: $status"
+          echo "Response Body:"
+          echo "$body"
+
+          if [ "$status" -ge 400 ]; then
+            echo "Import failed with status $status"
+            exit 1
+          else
+            echo "Import succeeded"
+          fi
         env:
           GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
           GRAVITEE_TOKEN: ${{ secrets.GRAVITEE_TOKEN }}
-          ORG_ID: ${{ secrets.ORG_ID }}
-          ENV_ID: ${{ secrets.ENV_ID }}
+          ORG_ID: ${{ secrets.GRAVITEE_ORG_ID }}
+          ENV_ID: ${{ secrets.GRAVITEE_ENV_ID }}
