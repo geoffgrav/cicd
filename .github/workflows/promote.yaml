@@ -10,7 +10,7 @@ on:
         description: "Source Environment ID"
         default: "DEFAULT"
       target_env_id:
-        description: "Target Environment ID (also Cockpit ID)"
+        description: "Target Environment ID"
         default: "e6993ff7-02d0-4c14-993f-f702d04c14f9"
 
 env:
