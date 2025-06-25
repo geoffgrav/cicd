@@ -1,0 +1,19 @@
+name: Deploy API to Gravitee
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Deploy to Gravitee
+        run: |
+          curl -X POST https://your-gravitee-url.com/management/apis \
+            -H "Authorization: Basic ${{ secrets.GRAVITEE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d @api-definition.json
