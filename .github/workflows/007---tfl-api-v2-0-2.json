@@ -18,7 +18,7 @@ jobs:
             --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
             --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
-            --data @gravitee/api-definition.json
+            --data @gravitee/007---tfl-api-v2-0-2.json
         env:
           GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
           GRAVITEE_TOKEN: ${{ secrets.GRAVITEE_TOKEN }}
