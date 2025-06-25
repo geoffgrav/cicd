@@ -1,5 +1,5 @@
 {
-  "name" : "002-aws-lambda-test",
+  "name" : "001-aws-lambda-test",
   "crossId" : "d35200ae-acdc-4cea-9200-aeacdcdceac8",
   "version" : "0.1",
   "execution_mode" : "v4-emulation-engine",
