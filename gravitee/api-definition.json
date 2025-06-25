@@ -1,0 +1,28 @@
+{
+  "name": "my-v2-api",
+  "version": "1.0",
+  "context_path": "/my-v2-api",
+  "proxy": {
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "https://backend.example.com"
+          }
+        ]
+      }
+    ],
+    "strip_context_path": false
+  },
+  "plans": [
+    {
+      "name": "Keyless",
+      "description": "No authentication",
+      "security": "KEY_LESS",
+      "status": "PUBLISHED",
+      "paths": {}
+    }
+  ]
+}
