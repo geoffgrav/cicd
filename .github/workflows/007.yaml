@@ -17,7 +17,7 @@ jobs:
           echo "Sending API definition to Gravitee..."
           response=$(curl --request POST \
             --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
-            --header "Authorization: Bearer $GRAVITEE_API_TOKEN" \
+            --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
             --data @gravitee/007.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
