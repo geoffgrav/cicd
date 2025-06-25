@@ -4,51 +4,74 @@ on:
   workflow_dispatch:
     inputs:
       api_id:
-        description: "API ID to promote (e.g., 'a1b2c3d4-5678-90ef-ghij-klmnopqrstuv')"
+        description: "API ID to promote (e.g., '71d49888-0811-3af7-8cba-6c1a5fbda94d')"
         required: true
       source_env_id:
-        description: "Source Environment ID (e.g., 'DEFAULT' for DEV)"
+        description: "Source Environment ID"
         default: "DEFAULT"
       target_env_id:
-        description: "Target Environment ID (e.g., 'e6993ff7-02d0-4c14-993f-f702d04c14f9' for PROD)"
+        description: "Target Environment ID"
         default: "e6993ff7-02d0-4c14-993f-f702d04c14f9"
 
 env:
   GRAVITEE_API_URL: "https://demo-apim-api.geoff.gravitee.xyz"
-  ORG_ID: "DEFAULT"  # Update if your org ID differs
+  ORG_ID: "DEFAULT"
 
 jobs:
   promote-api:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate inputs
+        run: |
+          echo "Validating inputs..."
+          echo "API ID: ${{ github.event.inputs.api_id }}"
+          echo "Source Env: ${{ github.event.inputs.source_env_id }}"
+          echo "Target Env: ${{ github.event.inputs.target_env_id }}"
+          
+          # Validate UUID format
+          if [[ ! "${{ github.event.inputs.api_id }}" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+            echo "❌ Invalid API ID format (must be UUID)"
+            exit 1
+          fi
+
       - name: Promote API
         run: |
-          echo "🚀 Promoting API ${{ github.event.inputs.api_id }}"
-          echo "🔹 Source Env: ${{ github.event.inputs.source_env_id }}"
-          echo "🎯 Target Env: ${{ github.event.inputs.target_env_id }}"
+          echo "🚀 Starting API promotion"
+          
+          # Create the JSON payload using heredoc to avoid quoting issues
+          read -r -d '' PROMOTE_PAYLOAD << EOM
+          {
+            "targetEnvId": "${{ github.event.inputs.target_env_id }}",
+            "targetEnvName": "Prod",
+            "withPolicies": true,
+            "withPlans": true
+          }
+          EOM
 
-          RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+          echo "📦 Payload:"
+          echo "$PROMOTE_PAYLOAD"
+
+          RESPONSE=$(curl -v -s -w "HTTPSTATUS:%{http_code}" \
             -X POST \
             "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote" \
             -H "Authorization: Bearer ${{ secrets.GRAVITEE_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "targetEnvId": "${{ github.event.inputs.target_env_id }}",
-              "targetEnvName": "Production",  # Optional: Human-readable name
-              "withPolicies": true,
-              "withPlans": true
-            }')
+            --data-raw "$PROMOTE_PAYLOAD")
 
-          # Extract HTTP status and response body
+          # Process response
           HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
           BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS\:.*//g')
 
-          echo "📡 Response: $BODY"
-          echo "🛠️ HTTP Status: $HTTP_STATUS"
+          echo "🔍 Debug Info:"
+          echo "URL: $GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote"
+          echo "Status: $HTTP_STATUS"
+          echo "Response: $BODY"
 
           if [ "$HTTP_STATUS" -ge 400 ]; then
-            echo "❌ Promotion failed!"
+            echo "❌ Promotion failed with status $HTTP_STATUS"
+            echo "Full error: $BODY"
             exit 1
           else
-            echo "✅ Success! API promoted to ${{ github.event.inputs.target_env_id }}"
+            echo "✅ Successfully promoted API to ${{ github.event.inputs.target_env_id }}"
+            echo "New API location: $GRAVITEE_API_URL/#!/$ORG_ID/${{ github.event.inputs.target_env_id }}/apis/${{ github.event.inputs.api_id }}"
           fi
