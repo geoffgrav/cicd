@@ -10,7 +10,7 @@ on:
         description: "Source Environment ID"
         default: "DEFAULT"
       target_env_id:
-        description: "Target Environment ID"
+        description: "Target Environment ID (also Cockpit ID)"
         default: "e6993ff7-02d0-4c14-993f-f702d04c14f9"
 
 env:
@@ -36,21 +36,22 @@ jobs:
       - name: Promote API
         run: |
           echo "🚀 Starting API promotion"
-          
-          # Create temp file for payload to avoid heredoc issues
+
+          # Create temp file for payload to avoid heredoc indentation issues
           cat << EOF > payload.json
           {
             "targetEnvId": "${{ github.event.inputs.target_env_id }}",
             "targetEnvName": "Production",
+            "targetEnvCockpitId": "${{ github.event.inputs.target_env_id }}",
             "withPolicies": true,
             "withPlans": true
           }
-          EOF
+EOF
           
           echo "📦 Payload:"
           cat payload.json
 
-          RESPONSE=$(curl -v -s -w "HTTPSTATUS:%{http_code}" \
+          RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
             -X POST \
             "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/${{ github.event.inputs.source_env_id }}/apis/${{ github.event.inputs.api_id }}/_promote" \
             -H "Authorization: Bearer ${{ secrets.GRAVITEE_TOKEN }}" \
@@ -61,7 +62,8 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS\:.*//g')
 
           echo "Status: $HTTP_STATUS"
-          echo "Response: $BODY"
+          echo "Response:"
+          echo "$BODY" | jq || echo "$BODY"
 
           if [ "$HTTP_STATUS" -ge 400 ]; then
             echo "❌ Promotion failed"
