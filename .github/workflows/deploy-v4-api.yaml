@@ -3,8 +3,7 @@ name: Deploy V4 API to Gravitee
 on:
   push:
     paths:
-      - "gravitee/v4/*.json"  # Only trigger on v4 files
-  workflow_dispatch:          # Allow manual trigger
+      - "gravitee/v4/*.json"
 
 jobs:
   deploy:
@@ -15,13 +14,12 @@ jobs:
 
       - name: Deploy V4 API to Gravitee
         run: |
-          echo "🚀 Sending V4 API definition to Gravitee..."
-
+          echo "Sending V4 API definition to Gravitee..."
           response=$(curl --request POST \
-            --url "$GRAVITEE_API_URL/management/v4/apis/import" \
+            --url "$GRAVITEE_API_URL/management/v2/environments/$ENV_ID/apis/_import/definition" \
             --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
-            --data @gravitee/v4/your-v4-api.json \
+            --data @gravitee/v4/my-v4-api.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
           body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
@@ -32,11 +30,12 @@ jobs:
           echo "$body"
 
           if [ "$status" -ge 400 ]; then
-            echo "❌ Import failed with status $status"
+            echo "Import failed with status $status"
             exit 1
           else
-            echo "✅ Import succeeded"
+            echo "Import succeeded"
           fi
         env:
           GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
           GRAVITEE_TOKEN: ${{ secrets.GRAVITEE_TOKEN }}
+          ENV_ID: ${{ secrets.GRAVITEE_ENV_ID }}
