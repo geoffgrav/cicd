@@ -11,7 +11,7 @@
         "type": "HTTP",
         "paths": [
           {
-            "path": "/100-kafka-api/",
+            "path": "/10-kafka-api/",
             "overrideAccess": false
           }
         ],
