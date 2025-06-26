@@ -1,42 +1,217 @@
-name: Deploy V4 API to Gravitee
-
-on:
-  push:
-    paths:
-      - "gravitee/v4/*.json"  # Only trigger on v4 files
-  workflow_dispatch:          # Allow manual trigger
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Deploy V4 API to Gravitee
-        run: |
-          echo "🚀 Sending V4 API definition to Gravitee..."
-
-          response=$(curl --request POST \
-            --url "$GRAVITEE_API_URL/management/v4/apis/import" \
-            --header "Authorization: Bearer $GRAVITEE_TOKEN" \
-            --header "Content-Type: application/json" \
-            --data @gravitee/v4/your-v4-api.json \
-            --silent --write-out "HTTPSTATUS:%{http_code}")
-
-          body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
-          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-
-          echo "HTTP Status Code: $status"
-          echo "Response Body:"
-          echo "$body"
-
-          if [ "$status" -ge 400 ]; then
-            echo "❌ Import failed with status $status"
-            exit 1
-          else
-            echo "✅ Import succeeded"
-          fi
-        env:
-          GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
-          GRAVITEE_TOKEN: ${{ secrets.GRAVITEE_TOKEN }}
+{
+  "export": {
+    "date": "2025-06-26T07:27:20.605667346Z",
+    "apimVersion": "4.7.7"
+  },
+  "api": {
+    "definitionVersion": "V4",
+    "type": "MESSAGE",
+    "listeners": [
+      {
+        "type": "HTTP",
+        "paths": [
+          {
+            "path": "/100-kafka-api/",
+            "overrideAccess": false
+          }
+        ],
+        "entrypoints": [
+          {
+            "type": "http-post",
+            "qos": "AUTO",
+            "configuration": {
+              "produceEmptyMessageFlow": false,
+              "requestHeadersToMessage": false,
+              "statusOverride": 202
+            }
+          },
+          {
+            "type": "websocket",
+            "qos": "AUTO",
+            "configuration": {
+              "subscriber": {
+                "enabled": true
+              },
+              "publisher": {
+                "enabled": true
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "SUBSCRIPTION",
+        "entrypoints": [
+          {
+            "type": "webhook",
+            "qos": "AUTO",
+            "configuration": {
+              "interruptConsumptionOnServerError": true,
+              "interruptConsumptionOnException": true
+            }
+          }
+        ]
+      }
+    ],
+    "endpointGroups": [
+      {
+        "name": "Default Kafka group",
+        "type": "kafka",
+        "loadBalancer": {
+          "type": "ROUND_ROBIN"
+        },
+        "sharedConfiguration": "{\"security\":{\"protocol\":\"SASL_SSL\",\"sasl\":{\"saslMechanism\":\"PLAIN\",\"saslJaasConfig\":\"org.apache.kafka.common.security.plain.PlainLoginModule required username=\\\"24U5PHLY3QGCGVUH\\\" password=\\\"fH9d5YQbDRvk18HUjaGVhpAZamBdzhO3bu1rxtql2TqPPoxuFmPLLKLpRbMrl7sl\\\";\"},\"ssl\":{\"keyStore\":{\"type\":\"NONE\"},\"trustStore\":{\"type\":\"NONE\"}}},\"producer\":{\"topics\":[\"general_data\"],\"compressionType\":\"none\",\"enabled\":true},\"consumer\":{\"encodeMessageId\":true,\"checkTopicExistence\":false,\"removeConfluentHeader\":false,\"topics\":[\"general_data\"],\"enabled\":true,\"autoOffsetReset\":\"latest\"}}",
+        "endpoints": [
+          {
+            "name": "Default Kafka",
+            "type": "kafka",
+            "weight": 1,
+            "inheritConfiguration": true,
+            "configuration": {
+              "bootstrapServers": "pkc-12576z.us-west2.gcp.confluent.cloud:9092"
+            },
+            "services": {},
+            "secondary": false
+          }
+        ],
+        "services": {}
+      }
+    ],
+    "analytics": {
+      "enabled": true
+    },
+    "flowExecution": {
+      "mode": "DEFAULT",
+      "matchRequired": false
+    },
+    "flows": [],
+    "id": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
+    "name": "100-kafka-api",
+    "description": "",
+    "apiVersion": "0.1",
+    "deployedAt": "2025-06-25T14:02:10.461Z",
+    "createdAt": "2025-06-16T13:02:13.27Z",
+    "updatedAt": "2025-06-25T14:02:10.461Z",
+    "disableMembershipNotifications": false,
+    "groups": [
+      "e65c41cc-d3b7-466e-9c41-ccd3b7566ef5"
+    ],
+    "state": "STARTED",
+    "visibility": "PRIVATE",
+    "lifecycleState": "PUBLISHED",
+    "tags": [],
+    "primaryOwner": {
+      "id": "c6f85216-e6d1-425e-b852-16e6d1a25e2a",
+      "email": "",
+      "displayName": "admin",
+      "type": "USER"
+    },
+    "originContext": {
+      "origin": "MANAGEMENT"
+    },
+    "responseTemplates": {},
+    "properties": []
+  },
+  "members": [
+    {
+      "id": "c6f85216-e6d1-425e-b852-16e6d1a25e2a",
+      "displayName": "admin",
+      "roles": [
+        {
+          "name": "PRIMARY_OWNER",
+          "scope": "API"
+        }
+      ]
+    }
+  ],
+  "metadata": [
+    {
+      "key": "email-support",
+      "name": "email-support",
+      "format": "MAIL",
+      "value": "${(api.primaryOwner.email)!''}",
+      "defaultValue": "support@change.me"
+    }
+  ],
+  "pages": [],
+  "plans": [
+    {
+      "definitionVersion": "V4",
+      "flows": [],
+      "id": "3f39b5e3-2ac9-400a-b9b5-e32ac9100a97",
+      "name": "Default Keyless (UNSECURED)",
+      "description": "Default unsecured plan",
+      "apiId": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
+      "security": {
+        "type": "KEY_LESS",
+        "configuration": {}
+      },
+      "mode": "STANDARD",
+      "characteristics": [],
+      "commentRequired": false,
+      "createdAt": "2025-06-16T13:02:14.123Z",
+      "excludedGroups": [],
+      "order": 1,
+      "publishedAt": "2025-06-16T13:02:14.279Z",
+      "status": "PUBLISHED",
+      "tags": [],
+      "type": "API",
+      "updatedAt": "2025-06-16T13:02:14.279Z",
+      "validation": "MANUAL"
+    },
+    {
+      "definitionVersion": "V4",
+      "flows": [
+        {
+          "id": "cbe074e1-e9d2-47b1-a074-e1e9d2d7b192",
+          "enabled": true,
+          "selectors": [
+            {
+              "type": "CHANNEL",
+              "channel": "/",
+              "channelOperator": "STARTS_WITH"
+            }
+          ],
+          "request": [
+            {
+              "name": "IPFiltering",
+              "enabled": true,
+              "policy": "ip-filtering",
+              "configuration": {
+                "lookupIpVersion": "ALL",
+                "blacklistIps": [],
+                "whitelistIps": [
+                  "10.10.10.1"
+                ],
+                "matchAllFromXForwardedFor": true,
+                "useCustomIPAddress": false
+              }
+            }
+          ],
+          "response": [],
+          "subscribe": [],
+          "publish": []
+        }
+      ],
+      "id": "fa42aefb-e52e-4b0a-82ae-fbe52e0b0a73",
+      "name": "push-plan",
+      "description": "",
+      "apiId": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
+      "mode": "PUSH",
+      "characteristics": [],
+      "commentMessage": "",
+      "commentRequired": false,
+      "createdAt": "2025-06-16T13:27:25.508Z",
+      "excludedGroups": [],
+      "generalConditions": "",
+      "order": 2,
+      "publishedAt": "2025-06-16T13:27:29.096Z",
+      "status": "PUBLISHED",
+      "tags": [],
+      "type": "API",
+      "updatedAt": "2025-06-25T14:02:07.464Z",
+      "validation": "MANUAL"
+    }
+  ],
+  "apiMedia": []
+}
