@@ -1,74 +1,45 @@
 {
   "export": {
-    "date": "2025-06-26T07:27:20.605667346Z",
-    "apimVersion": "4.7.7"
+    "date": "2025-06-26T07:38:56.66847937Z",
+    "apimVersion": "4.7.6"
   },
   "api": {
     "definitionVersion": "V4",
-    "type": "MESSAGE",
+    "type": "PROXY",
     "listeners": [
       {
         "type": "HTTP",
         "paths": [
           {
-            "path": "/10-kafka-api/",
+            "path": "/003-assign-content-v4/",
             "overrideAccess": false
           }
         ],
         "entrypoints": [
           {
-            "type": "http-post",
+            "type": "http-proxy",
             "qos": "AUTO",
-            "configuration": {
-              "produceEmptyMessageFlow": false,
-              "requestHeadersToMessage": false,
-              "statusOverride": 202
-            }
-          },
-          {
-            "type": "websocket",
-            "qos": "AUTO",
-            "configuration": {
-              "subscriber": {
-                "enabled": true
-              },
-              "publisher": {
-                "enabled": true
-              }
-            }
-          }
-        ]
-      },
-      {
-        "type": "SUBSCRIPTION",
-        "entrypoints": [
-          {
-            "type": "webhook",
-            "qos": "AUTO",
-            "configuration": {
-              "interruptConsumptionOnServerError": true,
-              "interruptConsumptionOnException": true
-            }
+            "configuration": {}
           }
         ]
       }
     ],
     "endpointGroups": [
       {
-        "name": "Default Kafka group",
-        "type": "kafka",
+        "name": "Default HTTP proxy group",
+        "type": "http-proxy",
         "loadBalancer": {
           "type": "ROUND_ROBIN"
         },
-        "sharedConfiguration": "{\"security\":{\"protocol\":\"SASL_SSL\",\"sasl\":{\"saslMechanism\":\"PLAIN\",\"saslJaasConfig\":\"org.apache.kafka.common.security.plain.PlainLoginModule required username=\\\"24U5PHLY3QGCGVUH\\\" password=\\\"fH9d5YQbDRvk18HUjaGVhpAZamBdzhO3bu1rxtql2TqPPoxuFmPLLKLpRbMrl7sl\\\";\"},\"ssl\":{\"keyStore\":{\"type\":\"NONE\"},\"trustStore\":{\"type\":\"NONE\"}}},\"producer\":{\"topics\":[\"general_data\"],\"compressionType\":\"none\",\"enabled\":true},\"consumer\":{\"encodeMessageId\":true,\"checkTopicExistence\":false,\"removeConfluentHeader\":false,\"topics\":[\"general_data\"],\"enabled\":true,\"autoOffsetReset\":\"latest\"}}",
+        "sharedConfiguration": "{\"proxy\":{\"useSystemProxy\":false,\"enabled\":false},\"http\":{\"keepAliveTimeout\":30000,\"keepAlive\":true,\"followRedirects\":false,\"readTimeout\":10000,\"idleTimeout\":60000,\"connectTimeout\":3000,\"useCompression\":true,\"maxConcurrentConnections\":20,\"version\":\"HTTP_1_1\",\"pipelining\":false},\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":true,\"trustStore\":{\"type\":\"\"},\"trustAll\":false}}",
         "endpoints": [
           {
-            "name": "Default Kafka",
-            "type": "kafka",
+            "name": "Default HTTP proxy",
+            "type": "http-proxy",
             "weight": 1,
             "inheritConfiguration": true,
             "configuration": {
-              "bootstrapServers": "pkc-12576z.us-west2.gcp.confluent.cloud:9092"
+              "target": "https://api.tfl.gov.uk/line/mode/tube/status"
             },
             "services": {},
             "secondary": false
@@ -85,27 +56,28 @@
       "matchRequired": false
     },
     "flows": [],
-    "id": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
-    "name": "101-kafka-api",
+    "id": "4f1fe0f9-4836-45af-9fe0-f9483695af7e",
+    "name": "003-assign-content-v4",
     "description": "",
     "apiVersion": "0.1",
-    "deployedAt": "2025-06-25T14:02:10.461Z",
-    "createdAt": "2025-06-16T13:02:13.27Z",
-    "updatedAt": "2025-06-25T14:02:10.461Z",
+    "deployedAt": "2024-12-05T15:50:13.816Z",
+    "createdAt": "2024-04-15T19:57:54.553Z",
+    "updatedAt": "2024-12-05T15:50:13.816Z",
     "disableMembershipNotifications": false,
-    "groups": [
-      "e65c41cc-d3b7-466e-9c41-ccd3b7566ef5"
-    ],
+    "groups": [],
     "state": "STARTED",
     "visibility": "PRIVATE",
     "lifecycleState": "PUBLISHED",
     "tags": [],
     "primaryOwner": {
-      "id": "c6f85216-e6d1-425e-b852-16e6d1a25e2a",
+      "id": "c8bf8525-bf16-4a24-bf85-25bf166a2469",
       "email": "",
       "displayName": "admin",
       "type": "USER"
     },
+    "categories": [
+      "c2f8ecc0-6b1f-4468-b8ec-c06b1ff4680b"
+    ],
     "originContext": {
       "origin": "MANAGEMENT"
     },
@@ -114,7 +86,7 @@
   },
   "members": [
     {
-      "id": "c6f85216-e6d1-425e-b852-16e6d1a25e2a",
+      "id": "c8bf8525-bf16-4a24-bf85-25bf166a2469",
       "displayName": "admin",
       "roles": [
         {
@@ -137,79 +109,54 @@
   "plans": [
     {
       "definitionVersion": "V4",
-      "flows": [],
-      "id": "3f39b5e3-2ac9-400a-b9b5-e32ac9100a97",
-      "name": "Default Keyless (UNSECURED)",
-      "description": "Default unsecured plan",
-      "apiId": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
-      "security": {
-        "type": "KEY_LESS",
-        "configuration": {}
-      },
-      "mode": "STANDARD",
-      "characteristics": [],
-      "commentRequired": false,
-      "createdAt": "2025-06-16T13:02:14.123Z",
-      "excludedGroups": [],
-      "order": 1,
-      "publishedAt": "2025-06-16T13:02:14.279Z",
-      "status": "PUBLISHED",
-      "tags": [],
-      "type": "API",
-      "updatedAt": "2025-06-16T13:02:14.279Z",
-      "validation": "MANUAL"
-    },
-    {
-      "definitionVersion": "V4",
       "flows": [
         {
-          "id": "cbe074e1-e9d2-47b1-a074-e1e9d2d7b192",
+          "id": "fdbdb05c-bfe4-461c-bdb0-5cbfe4961c6c",
           "enabled": true,
           "selectors": [
             {
-              "type": "CHANNEL",
-              "channel": "/",
-              "channelOperator": "STARTS_WITH"
+              "type": "HTTP",
+              "path": "/",
+              "pathOperator": "STARTS_WITH"
             }
           ],
-          "request": [
+          "request": [],
+          "response": [
             {
-              "name": "IPFiltering",
+              "name": "Assign content",
               "enabled": true,
-              "policy": "ip-filtering",
+              "policy": "policy-assign-content",
               "configuration": {
-                "lookupIpVersion": "ALL",
-                "blacklistIps": [],
-                "whitelistIps": [
-                  "10.10.10.1"
-                ],
-                "matchAllFromXForwardedFor": true,
-                "useCustomIPAddress": false
+                "scope": "REQUEST",
+                "body": "Assign Content"
               }
             }
           ],
-          "response": [],
           "subscribe": [],
           "publish": []
         }
       ],
-      "id": "fa42aefb-e52e-4b0a-82ae-fbe52e0b0a73",
-      "name": "push-plan",
+      "id": "e3a2ec91-ca76-4cbc-a2ec-91ca761cbcc6",
+      "name": "assign-content-v4",
       "description": "",
-      "apiId": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
-      "mode": "PUSH",
+      "apiId": "4f1fe0f9-4836-45af-9fe0-f9483695af7e",
+      "security": {
+        "type": "API_KEY",
+        "configuration": {}
+      },
+      "mode": "STANDARD",
       "characteristics": [],
       "commentMessage": "",
       "commentRequired": false,
-      "createdAt": "2025-06-16T13:27:25.508Z",
+      "createdAt": "2024-04-15T19:57:55.438Z",
       "excludedGroups": [],
       "generalConditions": "",
-      "order": 2,
-      "publishedAt": "2025-06-16T13:27:29.096Z",
+      "order": 1,
+      "publishedAt": "2024-04-15T19:57:55.647Z",
       "status": "PUBLISHED",
       "tags": [],
       "type": "API",
-      "updatedAt": "2025-06-25T14:02:07.464Z",
+      "updatedAt": "2024-04-15T20:04:50.794Z",
       "validation": "MANUAL"
     }
   ],
