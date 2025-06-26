@@ -19,7 +19,7 @@ jobs:
             --url "$GRAVITEE_API_URL/management/v2/environments/$ENV_ID/apis/_import/definition" \
             --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
-            --data @gravitee/v4/my-v4-api.json \
+            --data @gravitee/v4/your-v4-api.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
           body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
