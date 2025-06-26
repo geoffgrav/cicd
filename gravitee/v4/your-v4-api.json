@@ -86,7 +86,7 @@
     },
     "flows": [],
     "id": "d48b0ce5-38a3-49fc-8b0c-e538a389fc7e",
-    "name": "100-kafka-api",
+    "name": "101-kafka-api",
     "description": "",
     "apiVersion": "0.1",
     "deployedAt": "2025-06-25T14:02:10.461Z",
