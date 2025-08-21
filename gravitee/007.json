@@ -3,38 +3,38 @@
   "crossId" : "d35200ae-acdc-4cea-9200-aeacdcdceac8",
   "version" : "0.1",
   "execution_mode" : "v4-emulation-engine",
-  "description" : "Test Description Updated - Fifth",
+  "description" : "Test Description",
   "visibility" : "PRIVATE",
   "flows" : [ ],
   "gravitee" : "2.0.0",
   "flow_mode" : "DEFAULT",
   "resources" : [ ],
   "properties" : [ ],
-  "groups" : [],
+  "groups" : [ "AdminDev" ],
   "members" : [ {
-    "source" : "cockpit",
-    "sourceId" : "dcf83718-4e2a-40eb-b837-184e2a20eb13",
-    "roles" : [ "95becec5-22a4-43a7-bece-c522a4e3a7d7" ]
+    "source" : "gravitee",
+    "sourceId" : "dev",
+    "roles" : [ "9bbfd3b1-ffd3-4472-bfd3-b1ffd3b47267" ]
   } ],
   "pages" : [ {
-    "id" : "f536d35f-3689-4ef8-b6d3-5f36893ef8e4",
+    "id" : "b282669e-d730-3ff2-b534-66d72c2edaac",
     "crossId" : "00a4abf5-ec0e-4b19-a4ab-f5ec0e4b19f8",
     "name" : "Aside",
     "type" : "SYSTEM_FOLDER",
     "order" : 0,
     "published" : true,
     "visibility" : "PUBLIC",
-    "lastModificationDate" : 1728983573057,
+    "lastModificationDate" : 1750878034165,
     "contentType" : "application/json",
     "homepage" : false,
     "parentPath" : "",
     "excludedAccessControls" : false,
     "accessControls" : [ ],
-    "api" : "6e85024b-8fff-4983-8502-4b8fffe98329",
+    "api" : "71d49888-0811-3af7-8cba-6c1a5fbda94d",
     "attached_media" : [ ]
   } ],
   "plans" : [ {
-    "id" : "e2611e4d-d901-464b-a11e-4dd901964bfc",
+    "id" : "58e62648-8832-33a5-80b3-2a693d7ed02b",
     "definitionVersion" : "2.0.0",
     "crossId" : "02728171-70b2-45eb-b281-7170b2e5eb1f",
     "name" : "aws-lambda-test-plan",
@@ -43,17 +43,18 @@
     "security" : "KEY_LESS",
     "type" : "API",
     "status" : "PUBLISHED",
-    "api" : "6e85024b-8fff-4983-8502-4b8fffe98329",
+    "api" : "71d49888-0811-3af7-8cba-6c1a5fbda94d",
     "order" : 0,
     "characteristics" : [ ],
     "tags" : [ ],
-    "created_at" : 1718044478852,
-    "updated_at" : 1728983572932,
-    "published_at" : 1718044478852,
+    "created_at" : 1750878034289,
+    "updated_at" : 1753955890435,
+    "published_at" : 1750878034289,
     "paths" : { },
+    "excluded_groups" : [ ],
     "comment_required" : false,
     "flows" : [ {
-      "id" : "d32818a4-c5d4-4ea0-a818-a4c5d47ea076",
+      "id" : "4365650e-5c20-4cf3-a565-0e5c202cf379",
       "path-operator" : {
         "path" : "/",
         "operator" : "STARTS_WITH"
@@ -61,7 +62,13 @@
       "condition" : "",
       "consumers" : [ ],
       "methods" : [ ],
-      "pre" : [ ],
+      "pre" : [ {
+        "name" : "IPFiltering",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "ip-filtering",
+        "configuration" : {"lookupIpVersion":"ALL"}
+      } ],
       "post" : [ ],
       "enabled" : true
     } ]
@@ -72,9 +79,9 @@
     "format" : "MAIL",
     "value" : "${(api.primaryOwner.email)!''}",
     "defaultValue" : "support@change.me",
-    "apiId" : "6e85024b-8fff-4983-8502-4b8fffe98329"
+    "apiId" : "71d49888-0811-3af7-8cba-6c1a5fbda94d"
   } ],
-  "id" : "6e85024b-8fff-4983-8502-4b8fffe98329",
+  "id" : "71d49888-0811-3af7-8cba-6c1a5fbda94d",
   "path_mappings" : [ ],
   "proxy" : {
     "virtual_hosts" : [ {
@@ -90,8 +97,10 @@
         "weight" : 1,
         "backup" : false,
         "status" : "UP",
+        "tenants" : [ ],
         "type" : "http",
         "inherit" : true,
+        "headers" : [ ],
         "proxy" : null,
         "http" : null,
         "ssl" : null
@@ -114,9 +123,9 @@
   },
   "response_templates" : { },
   "primaryOwner" : {
-    "id" : "f08c0928-1f30-4f35-8c09-281f304f35dc",
-    "email" : "damjan.endekovski+elesh@graviteesource.com",
-    "displayName" : "Damjan Elesh",
+    "id" : "5fcf996b-5b42-43cf-8f99-6b5b42d3cff7",
+    "email" : "dev@dev.com",
+    "displayName" : "dev",
     "type" : "USER"
   },
   "disable_membership_notifications" : false
