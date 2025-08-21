@@ -30,7 +30,9 @@ jobs:
           if [ "$status_post" = "400" ] && echo "$body_post" | grep -q "api.exists"; then
             echo "API already exists. Switching to update (PUT) method."
             
-            API_ID=$(grep -o '"id" *: *"[^"]*"' gravitee/007.json | cut -d '"' -f 4)
+            # This is the corrected line that reliably gets only the main API ID
+            API_ID=$(jq -r '.id' gravitee/007.json)
+            
             if [ -z "$API_ID" ]; then
                 echo "Error: Could not extract API ID from gravitee/007.json"
                 exit 1
