@@ -1,40 +1,53 @@
-name: Deploy API to Gravitee
-
-on:
-  push:
-    paths:
-      - "gravitee/007.json"
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Deploy V2 API to Gravitee
+- name: Create or Update API in Gravitee
         run: |
-          echo "Sending API definition to Gravitee..."
-          response=$(curl --request POST \
+          echo "Attempting to create (import) API..."
+          response_post=$(curl --request POST \
             --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
             --header "Authorization: Bearer $GRAVITEE_TOKEN" \
             --header "Content-Type: application/json" \
             --data @gravitee/007.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
-          # Extract body and status
-          body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
-          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          status_post=$(echo "$response_post" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          body_post=$(echo "$response_post" | sed -e 's/HTTPSTATUS\:.*//g')
 
-          echo "HTTP Status Code: $status"
-          echo "Response Body:"
-          echo "$body"
+          echo "Initial POST attempt returned HTTP Status: $status_post"
+          
+          if [ "$status_post" = "400" ] && echo "$body_post" | grep -q "api.exists"; then
+            echo "API already exists. Switching to update (PUT) method."
+            
+            API_ID=$(grep -o '"id" *: *"[^"]*"' gravitee/007.json | cut -d '"' -f 4)
+            if [ -z "$API_ID" ]; then
+                echo "Error: Could not extract API ID from gravitee/007.json"
+                exit 1
+            fi
+            echo "Found API ID: $API_ID. Retrying with PUT..."
 
-          if [ "$status" -ge 400 ]; then
-            echo "Import failed with status $status"
+            response_put=$(curl --request PUT \
+              --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/$API_ID" \
+              --header "Authorization: Bearer $GRAVITEE_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data @gravitee/007.json \
+              --silent --write-out "HTTPSTATUS:%{http_code}")
+            
+            status_put=$(echo "$response_put" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+            body_put=$(echo "$response_put" | sed -e 's/HTTPSTATUS\:.*//g')
+
+            echo "PUT attempt returned HTTP Status: $status_put"
+            
+            if [ "$status_put" -ge 400 ]; then
+                echo "Error: Update attempt failed."
+                echo "Response Body: $body_put"
+                exit 1
+            fi
+
+            echo "API updated successfully."
+          elif [ "$status_post" -ge 400 ]; then
+            echo "Error: Initial import failed with an unrecoverable error."
+            echo "Response Body: $body_post"
             exit 1
           else
-            echo "Import succeeded"
+            echo "API created successfully."
           fi
         env:
           GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
