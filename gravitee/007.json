@@ -15,11 +15,11 @@ jobs:
       - name: Create or Update API in Gravitee
         run: |
           echo "Attempting to create (import) API..."
-          response_post=$(curl --request POST \
-            --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
+          response_post=$(curl --request POST 
+            --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" 
             --header "Authorization: Bearer $GRAVITEE_TOKEN"
             --header "Content-Type: application/json"
-            --data @gravitee/007.json \
+            --data @gravitee/007.json
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
           status_post=$(echo "$response_post" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
@@ -38,11 +38,11 @@ jobs:
             fi
             echo "Found API ID: $API_ID. Retrying with PUT..."
 
-            response_put=$(curl --request PUT \
-              --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/$API_ID" \
+            response_put=$(curl --request PUT
+              --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/$API_ID"
               --header "Authorization: Bearer $GRAVITEE_TOKEN"
               --header "Content-Type: application/json"
-              --data @gravitee/007.json \
+              --data @gravitee/007.json
               --silent --write-out "HTTPSTATUS:%{http_code}")
             
             status_put=$(echo "$response_put" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
