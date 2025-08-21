@@ -17,8 +17,8 @@ jobs:
           echo "Attempting to create (import) API..."
           response_post=$(curl --request POST \
             --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
-            --header "Authorization: Bearer $GRAVITEE_TOKEN" \
-            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $GRAVITEE_TOKEN"
+            --header "Content-Type: application/json"
             --data @gravitee/007.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
@@ -40,8 +40,8 @@ jobs:
 
             response_put=$(curl --request PUT \
               --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/$API_ID" \
-              --header "Authorization: Bearer $GRAVITEE_TOKEN" \
-              --header "Content-Type: application/json" \
+              --header "Authorization: Bearer $GRAVITEE_TOKEN"
+              --header "Content-Type: application/json"
               --data @gravitee/007.json \
               --silent --write-out "HTTPSTATUS:%{http_code}")
             
