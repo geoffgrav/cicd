@@ -22,7 +22,7 @@ jobs:
             --data @gravitee/007.json \
             --silent --write-out "HTTPSTATUS:%{http_code}")
 
-          status_post=$(echo "$response_post" | tr-d '\n' | sed -e 's/.*HTTPSTATUS://')
+          status_post=$(echo "$response_post" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
           body_post=$(echo "$response_post" | sed -e 's/HTTPSTATUS\:.*//g')
 
           echo "Initial POST attempt returned HTTP Status: $status_post"
@@ -45,7 +45,7 @@ jobs:
               --data @gravitee/007.json \
               --silent --write-out "HTTPSTATUS:%{http_code}")
             
-            status_put=$(echo "$response_put" | tr-d '\n' | sed -e 's/.*HTTPSTATUS://')
+            status_put=$(echo "$response_put" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
             body_put=$(echo "$response_put" | sed -e 's/HTTPSTATUS\:.*//g')
 
             echo "PUT attempt returned HTTP Status: $status_put"
