@@ -1,4 +1,18 @@
-- name: Create or Update API in Gravitee
+name: Deploy API to Gravitee
+
+on:
+  push:
+    paths:
+      - "gravitee/007.json"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create or Update API in Gravitee
         run: |
           echo "Attempting to create (import) API..."
           response_post=$(curl --request POST \
