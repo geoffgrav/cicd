@@ -3,7 +3,7 @@
   "crossId" : "d35200ae-acdc-4cea-9200-aeacdcdceac8",
   "version" : "0.1",
   "execution_mode" : "v4-emulation-engine",
-  "description" : "Test Description",
+  "description" : "Test Description Updated",
   "visibility" : "PRIVATE",
   "flows" : [ ],
   "gravitee" : "2.0.0",
