@@ -10,7 +10,7 @@
   "flow_mode" : "DEFAULT",
   "resources" : [ ],
   "properties" : [ ],
-  "groups" : [ "AdminDev" ],
+  "groups" : [ ],
   "members" : [ {
     "source" : "gravitee",
     "sourceId" : "dev",
