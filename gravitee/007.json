@@ -1,123 +1,71 @@
-{
-  "name" : "011-aws-lambda-test",
-  "crossId" : "d35200ae-acdc-4cea-9200-aeacdcdceac8",
-  "version" : "0.1",
-  "execution_mode" : "v4-emulation-engine",
-  "description" : "Test Description Updated - Fifth",
-  "visibility" : "PRIVATE",
-  "flows" : [ ],
-  "gravitee" : "2.0.0",
-  "flow_mode" : "DEFAULT",
-  "resources" : [ ],
-  "properties" : [ ],
-  "groups" : [],
-  "members" : [ {
-    "source" : "cockpit",
-    "sourceId" : "dcf83718-4e2a-40eb-b837-184e2a20eb13",
-    "roles" : [ "95becec5-22a4-43a7-bece-c522a4e3a7d7" ]
-  } ],
-  "pages" : [ {
-    "id" : "f536d35f-3689-4ef8-b6d3-5f36893ef8e4",
-    "crossId" : "00a4abf5-ec0e-4b19-a4ab-f5ec0e4b19f8",
-    "name" : "Aside",
-    "type" : "SYSTEM_FOLDER",
-    "order" : 0,
-    "published" : true,
-    "visibility" : "PUBLIC",
-    "lastModificationDate" : 1728983573057,
-    "contentType" : "application/json",
-    "homepage" : false,
-    "parentPath" : "",
-    "excludedAccessControls" : false,
-    "accessControls" : [ ],
-    "api" : "6e85024b-8fff-4983-8502-4b8fffe98329",
-    "attached_media" : [ ]
-  } ],
-  "plans" : [ {
-    "id" : "e2611e4d-d901-464b-a11e-4dd901964bfc",
-    "definitionVersion" : "2.0.0",
-    "crossId" : "02728171-70b2-45eb-b281-7170b2e5eb1f",
-    "name" : "aws-lambda-test-plan",
-    "description" : "this is a tes",
-    "validation" : "AUTO",
-    "security" : "KEY_LESS",
-    "type" : "API",
-    "status" : "PUBLISHED",
-    "api" : "6e85024b-8fff-4983-8502-4b8fffe98329",
-    "order" : 0,
-    "characteristics" : [ ],
-    "tags" : [ ],
-    "created_at" : 1718044478852,
-    "updated_at" : 1728983572932,
-    "published_at" : 1718044478852,
-    "paths" : { },
-    "comment_required" : false,
-    "flows" : [ {
-      "id" : "d32818a4-c5d4-4ea0-a818-a4c5d47ea076",
-      "path-operator" : {
-        "path" : "/",
-        "operator" : "STARTS_WITH"
-      },
-      "condition" : "",
-      "consumers" : [ ],
-      "methods" : [ ],
-      "pre" : [ ],
-      "post" : [ ],
-      "enabled" : true
-    } ]
-  } ],
-  "metadata" : [ {
-    "key" : "email-support",
-    "name" : "email-support",
-    "format" : "MAIL",
-    "value" : "${(api.primaryOwner.email)!''}",
-    "defaultValue" : "support@change.me",
-    "apiId" : "6e85024b-8fff-4983-8502-4b8fffe98329"
-  } ],
-  "id" : "6e85024b-8fff-4983-8502-4b8fffe98329",
-  "path_mappings" : [ ],
-  "proxy" : {
-    "virtual_hosts" : [ {
-      "path" : "/004-aws-lambda-test"
-    } ],
-    "strip_context_path" : false,
-    "preserve_host" : false,
-    "groups" : [ {
-      "name" : "default-group",
-      "endpoints" : [ {
-        "name" : "default",
-        "target" : "https://api.tfl.gov.uk/line/mode/tube/status",
-        "weight" : 1,
-        "backup" : false,
-        "status" : "UP",
-        "type" : "http",
-        "inherit" : true,
-        "proxy" : null,
-        "http" : null,
-        "ssl" : null
-      } ],
-      "load_balancing" : {
-        "type" : "ROUND_ROBIN"
-      },
-      "http" : {
-        "connectTimeout" : 5000,
-        "idleTimeout" : 60000,
-        "keepAliveTimeout" : 30000,
-        "keepAlive" : true,
-        "readTimeout" : 10000,
-        "pipelining" : false,
-        "maxConcurrentConnections" : 100,
-        "useCompression" : true,
-        "followRedirects" : false
-      }
-    } ]
-  },
-  "response_templates" : { },
-  "primaryOwner" : {
-    "id" : "f08c0928-1f30-4f35-8c09-281f304f35dc",
-    "email" : "damjan.endekovski+elesh@graviteesource.com",
-    "displayName" : "Damjan Elesh",
-    "type" : "USER"
-  },
-  "disable_membership_notifications" : false
-}
+name: Deploy API to Gravitee
+
+on:
+  push:
+    paths:
+      - "gravitee/007.json"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create or Update API in Gravitee
+        run: |
+          echo "Attempting to create (import) API..."
+          response_post=$(curl --request POST \
+            --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/import" \
+            --header "Authorization: Bearer $GRAVITEE_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data @gravitee/007.json \
+            --silent --write-out "HTTPSTATUS:%{http_code}")
+
+          status_post=$(echo "$response_post" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          body_post=$(echo "$response_post" | sed -e 's/HTTPSTATUS\:.*//g')
+
+          echo "Initial POST attempt returned HTTP Status: $status_post"
+          
+          if [ "$status_post" = "400" ] && echo "$body_post" | grep -q "api.exists"; then
+            echo "API already exists. Switching to update (PUT) method."
+            
+            API_ID=$(jq -r '.id' gravitee/007.json)
+            
+            if [ -z "$API_ID" ]; then
+                echo "Error: Could not extract API ID from gravitee/007.json"
+                exit 1
+            fi
+            echo "Found API ID: $API_ID. Retrying with PUT..."
+
+            response_put=$(curl --request PUT \
+              --url "$GRAVITEE_API_URL/management/organizations/$ORG_ID/environments/$ENV_ID/apis/$API_ID" \
+              --header "Authorization: Bearer $GRAVITEE_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data @gravitee/007.json \
+              --silent --write-out "HTTPSTATUS:%{http_code}")
+            
+            status_put=$(echo "$response_put" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+            body_put=$(echo "$response_put" | sed -e 's/HTTPSTATUS\:.*//g')
+
+            echo "PUT attempt returned HTTP Status: $status_put"
+            
+            if [ "$status_put" -ge 400 ]; then
+                echo "Error: Update attempt failed."
+                echo "Response Body: $body_put"
+                exit 1
+            fi
+
+            echo "API updated successfully."
+          elif [ "$status_post" -ge 400 ]; then
+            echo "Error: Initial import failed with an unrecoverable error."
+            echo "Response Body: $body_post"
+            exit 1
+          else
+            echo "API created successfully."
+          fi
+        env:
+          GRAVITEE_API_URL: ${{ secrets.GRAVITEE_API_URL }}
+          GRAVITEE_TOKEN: ${{ secrets.GRAVITEE_TOKEN }}
+          ORG_ID: ${{ secrets.GRAVITEE_ORG_ID }}
+          ENV_ID: ${{ secrets.GRAVITEE_ENV_ID }}
